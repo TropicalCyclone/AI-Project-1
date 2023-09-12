@@ -18,7 +18,12 @@ public class NPCBehaviourManager : MonoBehaviour
     public Vector3 CurrentDestination;
     NavMeshTriangulation Triangulation;
     public float distanceToPlayer;
+    public Vector3 distance;
     [SerializeField] private float playerFollowRange;
+    public float speed = 2f;
+
+    bool Follower;
+
     // Start is called before the first frame update
     public float followDuration;
     [SerializeField] private Material OriginalMaterial;
@@ -38,20 +43,31 @@ public class NPCBehaviourManager : MonoBehaviour
     void Update()
     {
         distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
+        distance = player.transform.position - transform.position;
         switch (aiState)
         {
             case e_AI_State.FollowPlayer:
                 agent.SetDestination(player.transform.position);
-                color.ChangeColor(player.GetComponent<MeshRenderer>().material);
+                agent.speed = distanceToPlayer;
+                if (Follower == false)
+                {
+                    color.ChangeColor(player.GetComponent<MeshRenderer>().material);
+                    Follower = true;
+                }
                 followDuration -= Time.deltaTime;
                 break;
             case e_AI_State.Patrol:
                 followDuration += Time.deltaTime;
-                color.ChangeColor(OriginalMaterial);
-                if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
+                if (Follower == true)
+                {
+                    color.ChangeColor(OriginalMaterial);
+                    Follower = false;
+                }
+                    if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
                 {
                     if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
                     {
+                        
                         MoveToRandomWaypoint();
                     }
                 }
